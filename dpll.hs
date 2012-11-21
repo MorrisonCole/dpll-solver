@@ -18,10 +18,11 @@ findUnit (x:xs)
     | otherwise = Nothing
 
 simplifyUnit :: Int -> [[Int]] -> [[Int]]
+simplifyUnit x [] = []
 simplifyUnit x (y:ys)
-    | x `elem` y = simplifyUnit x ys -- TODO: This should remove the element only, not the entire list!
-    | -x `elem` y = [] : simplifyUnit x ys -- TODO: Find out what this is actually supposed to do.
-    | otherwise = y : simplifyUnit x ys -- TODO: Find out what this is actually supposed to do.
+    | x `elem` y = simplifyUnit x ys
+    | -x `elem` y = (deleteBy (\z a -> a == -x) 0 y) : simplifyUnit x ys
+    | otherwise = y : simplifyUnit x ys
 
 unitPropagate :: [[Int]] -> [[Int]]
 unitPropagate xs
@@ -30,6 +31,7 @@ unitPropagate xs
         where y = findUnit xs
 
 containsEmptyClause :: [[Int]] -> Bool
+containsEmptyClause [] = False
 containsEmptyClause (x:xs)
     | x == [] = True
     | otherwise = True && containsEmptyClause xs
@@ -39,8 +41,7 @@ pickLiteral (x:xs) = head x
 
 dpll :: [[Int]] -> Bool
 dpll xs
-    | containsEmptyClause (unitPropagate (simplifyUnit y xs)) = False 
-    | containsEmptyClause (unitPropagate (simplifyUnit (-y) xs)) = False
+    | containsEmptyClause (unitPropagate (simplifyUnit y xs)) && containsEmptyClause (unitPropagate (simplifyUnit (-y) xs)) = False 
     | otherwise = True
         where y = pickLiteral xs
 

@@ -1,27 +1,27 @@
 import Data.Char
 import Data.List
 import Data.Maybe
+import System.IO
 
-getInts :: String -> [Int]
-getInts xs
-    | isValid xs = map read . init $ words xs
-    | otherwise = []
-
-isValid :: String -> Bool
-isValid [] = False
-isValid [x] = not $ isAlpha x
-isValid (x:xs) = isValid [x] && isValid xs
+readCNFInput :: String -> [[Int]]
+readCNFInput = map readCNFInput' . lines
+    where readCNFInput' = map read . init . words
 
 findUnit :: [[Int]] -> Maybe Int
+findUnit [] = Nothing
 findUnit (x:xs)
     | length x == 1 = Just $ head x
-    | otherwise = Nothing
+    | otherwise = findUnit xs
 
 simplifyUnit :: Int -> [[Int]] -> [[Int]]
-simplifyUnit x [] = []
+simplifyUnit x [] = error "args[1] should not be empty"
+simplifyUnit x [y]
+    | x `elem` y = []
+    | -x `elem` y = [filter (\z -> z /= -x) y]
+    | otherwise = [y]
 simplifyUnit x (y:ys)
     | x `elem` y = simplifyUnit x ys
-    | -x `elem` y = (deleteBy (\z a -> a == -x) 0 y) : simplifyUnit x ys
+    | -x `elem` y = filter (\z -> z /= -x) y : simplifyUnit x ys
     | otherwise = y : simplifyUnit x ys
 
 unitPropagate :: [[Int]] -> [[Int]]
@@ -31,21 +31,23 @@ unitPropagate xs
         where y = findUnit xs
 
 containsEmptyClause :: [[Int]] -> Bool
-containsEmptyClause [] = False
-containsEmptyClause (x:xs)
-    | x == [] = True
-    | otherwise = True && containsEmptyClause xs
+containsEmptyClause xs
+    | [] `elem` xs = True
+    | otherwise = False
 
 pickLiteral :: [[Int]] -> Int
 pickLiteral (x:xs) = head x
 
 dpll :: [[Int]] -> Bool
 dpll xs
-    | containsEmptyClause (unitPropagate (simplifyUnit y xs)) && containsEmptyClause (unitPropagate (simplifyUnit (-y) xs)) = False 
-    | otherwise = True
-        where y = pickLiteral xs
-
+    | xs == [] = True
+    | containsEmptyClause xs = False
+    | otherwise = dpll (simplifyUnit z ys) || dpll (simplifyUnit (-z) ys)
+        where ys = unitPropagate xs
+              z = pickLiteral ys
+        
 main = do
+    discard <- getLine
     input <- getContents
-    let clauseList = map getInts $ lines input
-    if dpll clauseList == True then putStrLn "satisfiable" else putStrLn "unsatisfiable"
+    let clauses = readCNFInput input
+    if dpll clauses == True then putStrLn "satisfiable" else putStrLn "unsatisfiable"

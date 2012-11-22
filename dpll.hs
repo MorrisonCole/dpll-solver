@@ -1,7 +1,4 @@
-import Data.Char
-import Data.List
 import Data.Maybe
-import System.IO
 
 readCNFInput :: String -> [[Int]]
 readCNFInput = map readCNFInput' . lines
@@ -9,12 +6,15 @@ readCNFInput = map readCNFInput' . lines
 
 findUnit :: [[Int]] -> Maybe Int
 findUnit [] = Nothing
+findUnit [x]
+    | length x == 1 = Just $ head x
+    | otherwise = Nothing
 findUnit (x:xs)
     | length x == 1 = Just $ head x
     | otherwise = findUnit xs
 
 simplifyUnit :: Int -> [[Int]] -> [[Int]]
-simplifyUnit x ys = map (filter (/= (-x))) (filter (x `notElem`) ys)
+simplifyUnit x ys = map (filter (/= (-x))) $ filter (x `notElem`) ys
 
 unitPropagate :: [[Int]] -> [[Int]]
 unitPropagate xs

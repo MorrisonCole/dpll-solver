@@ -14,15 +14,7 @@ findUnit (x:xs)
     | otherwise = findUnit xs
 
 simplifyUnit :: Int -> [[Int]] -> [[Int]]
-simplifyUnit x [] = error "args[1] should not be empty"
-simplifyUnit x [y]
-    | x `elem` y = []
-    | -x `elem` y = [filter (\z -> z /= -x) y]
-    | otherwise = [y]
-simplifyUnit x (y:ys)
-    | x `elem` y = simplifyUnit x ys
-    | -x `elem` y = filter (\z -> z /= -x) y : simplifyUnit x ys
-    | otherwise = y : simplifyUnit x ys
+simplifyUnit x ys = map (filter (/= (-x))) (filter (x `notElem`) ys)
 
 unitPropagate :: [[Int]] -> [[Int]]
 unitPropagate xs
